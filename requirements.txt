@@ -1,0 +1,5 @@
+gdown==5.2.0
+numpy==2.3.2
+Pillow==11.3.0
+streamlit==1.47.1
+tensorflow_cpu==2.19.0
