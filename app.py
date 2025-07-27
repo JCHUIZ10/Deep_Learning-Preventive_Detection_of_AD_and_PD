@@ -8,7 +8,7 @@ from tensorflow.keras.models import load_model
 # Función para cargar el modelo (con caché para mejor rendimiento)
 @st.cache_resource
 def cargar_modelo():
-    ruta_modelo = "model/04_modelo.keras"
+    ruta_modelo = "04_modelo.keras"
     id_drive = "1G3_ysyKP4uokQSnoIbcACWliRruUDSUx" 
 
     #Verificar si el modelo ya existe  
