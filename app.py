@@ -6,13 +6,21 @@ from tensorflow.keras.models import load_model
 # Función para cargar el modelo (con caché para mejor rendimiento)
 @st.cache_resource
 def cargar_modelo():
+    ruta_modelo = "model/04_modelo.keras"
+    id_drive = "1G3_ysyKP4uokQSnoIbcACWliRruUDSUx" 
+
+    #Verificar si el modelo ya existe  
+    if not os.path.exists(ruta_modelo):
+        st.info("Descargando obteniendo el modelo ...")
+        os.makedirs("model", exist_ok=True)
+        url = f"https://drive.google.com/uc?id={id_drive}"
+        gdown.download(url, ruta_modelo, quiet=False)
+        
     try:
-        # Ajusta esta ruta a donde tengas tu modelo
-        modelo = load_model("model/04_modelo.keras")  # o la ruta completa a tu modelo
+        modelo = load_model(ruta_modelo)
         return modelo
     except Exception as e:
         st.error(f"Error al cargar el modelo: {e}")
-        st.error("Asegúrate de que el archivo '04_modelo.keras' esté en el directorio correcto")
         return None
     
     # Función para preprocesar la imagen
@@ -182,5 +190,3 @@ with st.sidebar:
         st.success("Modelo cargado correctamente")
     else:
         st.error("Error al cargar el modelo")
-    
-
