@@ -12,7 +12,6 @@ def cargar_modelo():
     #Verificar si el modelo ya existe  
     if not os.path.exists(ruta_modelo):
         st.info("Descargando obteniendo el modelo ...")
-        os.makedirs("model", exist_ok=True)
         url = f"https://drive.google.com/uc?id={id_drive}"
         gdown.download(url, ruta_modelo, quiet=False)
         
