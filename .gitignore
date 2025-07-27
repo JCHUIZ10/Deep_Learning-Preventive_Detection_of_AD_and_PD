@@ -1,3 +1,19 @@
-.env
-*.keras
+# Entorno virtual
+venv/
+.venv/
+
+# Archivos temporales y compilados de Python
 __pycache__/
+*.py[cod]
+*.so
+
+# Archivos ocultos de sistema o editor
+*.DS_Store
+*.swp
+
+# Modelos o archivos grandes
+*.h5
+*.keras
+
+# Variables de entorno
+.env
