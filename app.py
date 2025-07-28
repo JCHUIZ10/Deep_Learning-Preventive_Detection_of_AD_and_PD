@@ -1,29 +1,30 @@
 import streamlit as st
 from PIL import Image
-import os
-import gdown
 import numpy as np
+import gdown
+import os
 from tensorflow.keras.models import load_model
 
 # Función para cargar el modelo (con caché para mejor rendimiento)
 @st.cache_resource
 def cargar_modelo():
-    ruta_modelo = "04_modelo.keras"
-    id_drive = "1G3_ysyKP4uokQSnoIbcACWliRruUDSUx" 
+    ruta_modelo = "02_modelo.keras"
+    id_drive = "1G3_ysyKP4uokQSnoIbcACWliRruUDSUx"  # <-- Reemplázalo por el tuyo
+    mensaje = st.empty()
 
-    #Verificar si el modelo ya existe  
     if not os.path.exists(ruta_modelo):
-        st.info("Descargando obteniendo el modelo ...")
+        mensaje.info("Descargando obteniendo el modelo ...")
         url = f"https://drive.google.com/uc?id={id_drive}"
         gdown.download(url, ruta_modelo, quiet=False)
         
     try:
         modelo = load_model(ruta_modelo)
+        mensaje.empty()  # Limpiar mensaje de descarga
         return modelo
     except Exception as e:
-        st.error(f"Error al cargar el modelo: {e}")
+        mensaje.error(f"Error al cargar el modelo: {e}")
         return None
-    
+
     # Función para preprocesar la imagen
 def preprocesar_imagen(imagen):
     """Preprocesa la imagen para que sea compatible con el modelo"""
