@@ -171,20 +171,29 @@ with st.sidebar:
     st.markdown("## Información del Modelo")
     st.markdown("""
     **Características:**
-    - **Arquitectura:** ResNet50
+    - **Arquitectura:** EfficentNetB0 Architecture with Sigmoid
     - **Resolución:** 150x150 píxeles
-    - **Clases:**
-                - *AD (Alzheimer)*
-                - *Control (Sano)*
-                - *PD (Parkinson)*
     - **Tipo:** Clasificación de neuroimágenes
     
-    **Instrucciones:**
-    1. Sube una neuroimagen
-    2. Haz clic en "Analizar Imagen"
-    3. Revisa los resultados
+    **Clases de Diagnóstico:**
+    """)
     
-    **Formatos soportados:**
+    # Sección de clases 
+    st.markdown("""
+    - **AD (Alzheimer's Disease)**
+    - **Control (Sano)**
+    - **PD (Parkinson's Disease)**
+    """)
+    
+    st.markdown("---")
+    
+    st.markdown("""
+    **Instrucciones de Uso:**
+    1.Sube una neuroimagen
+    2.Haz clic en "Analizar Imagen"
+    3.Revisa los resultados del diagnóstico
+    
+    **Formatos Soportados:**
     - JPG, JPEG, PNG
     """)
     
