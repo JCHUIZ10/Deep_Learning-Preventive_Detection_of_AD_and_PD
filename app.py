@@ -5,134 +5,130 @@ import gdown
 import os
 from tensorflow.keras.models import load_model
 
-# Función para cargar el modelo (con caché para mejor rendimiento)
 @st.cache_resource
-def cargar_modelo():
-    ruta_modelo = "02_modelo.keras"
-    id_drive = "1G3_ysyKP4uokQSnoIbcACWliRruUDSUx"  # <-- Reemplázalo por el tuyo
-    mensaje = st.empty()
+def load_model_func():
+    model_path = "02_modelo.keras"
+    drive_id = "1G3_ysyKP4uokQSnoIbcACWliRruUDSUx"
+    message = st.empty()
 
-    if not os.path.exists(ruta_modelo):
-        mensaje.info("Descargando obteniendo el modelo ...")
-        url = f"https://drive.google.com/uc?id={id_drive}"
-        gdown.download(url, ruta_modelo, quiet=False)
+    if not os.path.exists(model_path):
+        message.info("Downloading model...")
+        url = f"https://drive.google.com/uc?id={drive_id}"
+        gdown.download(url, model_path, quiet=False)
         
     try:
-        modelo = load_model(ruta_modelo)
-        mensaje.empty()  # Limpiar mensaje de descarga
-        return modelo
+        model = load_model(model_path)
+        message.empty()  # Clear download message
+        return model
     except Exception as e:
-        mensaje.error(f"Error al cargar el modelo: {e}")
+        message.error(f"Error loading model: {e}")
         return None
 
-    # Función para preprocesar la imagen
-def preprocesar_imagen(imagen):
-    """Preprocesa la imagen para que sea compatible con el modelo"""
+# Function to preprocess the image
+def preprocess_image(image):
+    """Preprocesses the image to be compatible with the model"""
     try:
-        # Abrir imagen con PIL (Que es compatible con Streamlit y TensorFlow)
-        img = Image.open(imagen)
+        # Open image with PIL (compatible with Streamlit and TensorFlow)
+        img = Image.open(image)
         
-        # Convertir a RGB si es necesario (por si la imagen tiene canal alpha)
+        # Convert to RGB if necessary (in case the image has alpha channel)
         if img.mode != 'RGB':
             img = img.convert('RGB')
         
-        # Redimensionar a 150x150 (igual que en el entrenamiento)
+        # Resize to 150x150 (same as in training)
         img_resized = img.resize((150, 150))
         
-        # Convertir a array de numpy
+        # Convert to numpy array
         img_array = np.array(img_resized)
         
-        # Normalizar (dividir por 255.0 como en el entrenamiento)
+        # Normalize (divide by 255.0 as in training)
         img_array = img_array / 255.0
         
-        # Agregar dimensión de batch (el modelo espera un batch de imágenes)
+        # Add batch dimension (model expects a batch of images)
         img_array = np.expand_dims(img_array, axis=0)
         
         return img_array
     
     except Exception as e:
-        st.error(f"Error al procesar la imagen: {e}")
+        st.error(f"Error processing image: {e}")
         return None
 
-# Función para hacer predicción
-def predecir(modelo, imagen_procesada):
-    """Realiza la predicción usando el modelo cargado"""
+# Function to make prediction
+def predict(model, processed_image):
+    """Makes prediction using the loaded model"""
     try:
-        # Hacer la predicción
-        prediccion = modelo.predict(imagen_procesada)
+        # Make the prediction
+        prediction = model.predict(processed_image)
         
-        # Las clases están en el mismo orden que en tu entrenamiento
-        labels = ['AD','CONTROL', 'PD'] #Azheimer, Control, Parkinson
+        # Classes are in the same order as in training
+        labels = ['AD','CONTROL', 'PD'] # Alzheimer, Control, Parkinson
         
-        # Obtener la clase con mayor probabilidad
-        clase_predicha_idx = np.argmax(prediccion[0])
-        clase_predicha = labels[clase_predicha_idx]
+        # Get the class with highest probability
+        predicted_class_idx = np.argmax(prediction[0])
+        predicted_class = labels[predicted_class_idx]
         
-        # Obtener la confianza (probabilidad máxima)
-        confianza = np.max(prediccion[0])
+        # Get confidence (maximum probability)
+        confidence = np.max(prediction[0])
         
-        # Obtener todas las probabilidades para mostrar
-        probabilidades = {labels[i]: prediccion[0][i] for i in range(len(labels))}
+        # Get all probabilities to display
+        probabilities = {labels[i]: prediction[0][i] for i in range(len(labels))}
         
-        return clase_predicha, confianza, probabilidades
+        return predicted_class, confidence, probabilities
     
     except Exception as e:
-        st.error(f"Error durante la predicción: {e}")
+        st.error(f"Error during prediction: {e}")
         return None, None, None
 
-# Interfaz principal
-st.markdown("<h1 style='text-align: center;'> Clasificador de Neuroimágenes</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #666;'>Clasificación automática: Alzheimer (AD) | Control | Parkinson (PD)</p>", unsafe_allow_html=True)
+# Main interface
+st.markdown("<h1 style='text-align: center;'>Neuroimaging Classifier</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #666;'>Automatic Classification: Alzheimer (AD) | Control | Parkinson (PD)</p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# Cargar el modelo al inicio
-modelo = cargar_modelo()
+# Load model at startup
+model = load_model_func()
 
-if modelo is None:
-    st.stop()  # Detener la ejecución si no se puede cargar el modelo
+if model is None:
+    st.stop()  # Stop execution if model cannot be loaded
 
-# Subida de imagen
-imagen = st.file_uploader(
-    " Subir Neuroimagen",
+# Image upload
+image = st.file_uploader(
+    "Upload Neuroimaging",
     type=["jpg", "jpeg", "png"],
     accept_multiple_files=False,
-    help="Formatos soportados: JPG, JPEG, PNG"
+    help="Supported formats: JPG, JPEG, PNG"
 )
 
-if imagen:
-    # Botón para procesar
-    if st.button("🔍 Analizar Imagen", type="primary"):
-        with st.spinner(" Analizando neuroimagen..."):
-            # Preprocesar la imagen
-            imagen_procesada = preprocesar_imagen(imagen)
+if image:
+    # Button to process
+    if st.button("🔍 Analyze Image", type="primary"):
+        with st.spinner("Analyzing neuroimaging..."):
+            # Preprocess the image
+            processed_image = preprocess_image(image)
             
-            if imagen_procesada is not None:
-                # Hacer la predicción
-                clase_predicha, confianza, probabilidades = predecir(modelo, imagen_procesada)
+            if processed_image is not None:
+                # Make the prediction
+                predicted_class, confidence, probabilities = predict(model, processed_image)
                 
-                if clase_predicha is not None:
-                    # Mostrar resultados
+                if predicted_class is not None:
+                    # Show results
                     st.markdown("---")
-                    st.markdown("## **-> Resultados del Análisis**")
+                    st.markdown("## **-> Analysis Results**")
                     
                     col1, col2 = st.columns([1, 2])
                     
                     with col1:
-                        st.image(imagen, caption="Neuroimagen Analizada", use_container_width=True)
+                        st.image(image, caption="Analyzed Neuroimaging", use_container_width=True)
                     
                     with col2:
-                        # Determinar color según el resultado
-                        if clase_predicha == "CONTROL":
-                            color = "#4CAF50"  # Verde para control sano
-                            #icon = "✅"
-                        elif clase_predicha == "AD":
-                            color = "#FF5722"  # Rojo para Alzheimer
-                            #icon = "⚠️"
+                        # Determine color according to result
+                        if predicted_class == "CONTROL":
+                            color = "#4CAF50"  # Green for healthy control
+                        elif predicted_class == "AD":
+                            color = "#FF5722"  # Red for Alzheimer
                         else:  # PD
-                            color = "#FF9800"  # Naranja para Parkinson
-                            #icon = "🔍" 
+                            color = "#FF9800"  # Orange for Parkinson
                         
-                        # Resultado principal
+                        # Main result
                         st.markdown(f"""
                             <div style='
                                 border: 2px solid {color};
@@ -142,62 +138,62 @@ if imagen:
                                 box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
                                 margin-bottom: 20px;
                             '>
-                               <h3 style='color: #333; margin-bottom: 15px;'> Diagnóstico</h3>
-                                <p style='font-size: 24px; margin: 10px 0;'><strong>Clase:</strong> <span style='color: {color}; font-weight: bold;'>{clase_predicha}</span></p>
-                                <p style='font-size: 20px; margin: 10px 0;'><strong>Confianza:</strong> <span style='color: #2196F3; font-weight: bold;'>{confianza:.2%}</span></p>
+                               <h3 style='color: #333; margin-bottom: 15px;'>Diagnosis</h3>
+                                <p style='font-size: 24px; margin: 10px 0;'><strong>Class:</strong> <span style='color: {color}; font-weight: bold;'>{predicted_class}</span></p>
+                                <p style='font-size: 20px; margin: 10px 0;'><strong>Confidence:</strong> <span style='color: #2196F3; font-weight: bold;'>{confidence:.2%}</span></p>
                             </div>
                         """, unsafe_allow_html=True)
                         
-                        # Mostrar todas las probabilidades
-                        st.markdown("### 📈 Probabilidades por clase:")
-                        for clase, prob in probabilidades.items():
-                            st.progress(float(prob), text=f"{clase}: {prob:.2%}")
+                        # Show all probabilities
+                        st.markdown("### 📈 Probabilities by class:")
+                        for class_name, prob in probabilities.items():
+                            st.progress(float(prob), text=f"{class_name}: {prob:.2%}")
                     
-                    # Interpretación de resultados
+                    # Results interpretation
                     st.markdown("---")
-                    st.markdown("### Interpretación:")
+                    st.markdown("### Interpretation:")
                     
-                    if clase_predicha == "CONTROL":
-                        st.success(" **Control Sano**: La imagen sugiere patrones neurológicos normales.")
-                    elif clase_predicha == "AD":
-                        st.error(" **Alzheimer**: La imagen muestra patrones compatibles con enfermedad de Alzheimer.")
+                    if predicted_class == "CONTROL":
+                        st.success("**Healthy Control**: The image suggests normal neurological patterns.")
+                    elif predicted_class == "AD":
+                        st.error("**Alzheimer's**: The image shows patterns compatible with Alzheimer's disease.")
                     else:  # PD
-                        st.warning(" **Parkinson**: La imagen presenta características asociadas con enfermedad de Parkinson.")
+                        st.warning("**Parkinson's**: The image presents characteristics associated with Parkinson's disease.")
                     
-                    st.info("**Nota importante**: Este es un análisis automatizado con fines informativos. Siempre consulte con un profesional médico para un diagnóstico definitivo.")
+                    st.info("**Important note**: This is an automated analysis for informational purposes. Always consult with a medical professional for a definitive diagnosis.")
 
-# Información adicional en la barra lateral
+# Additional information in sidebar
 with st.sidebar:
-    st.markdown("## Información del Modelo")
+    st.markdown("## Model Information")
     st.markdown("""
-    **Características:**
-    - **Arquitectura:** EfficentNetB0 Architecture with Sigmoid
-    - **Resolución:** 150x150 píxeles
-    - **Tipo:** Clasificación de neuroimágenes
+    **Features:**
+    - **Architecture:** EfficientNetB0 Architecture with Sigmoid
+    - **Resolution:** 150x150 pixels
+    - **Type:** Neuroimaging classification
     
-    **Clases de Diagnóstico:**
+    **Diagnostic Classes:**
     """)
     
-    # Sección de clases 
+    # Classes section 
     st.markdown("""
     - **AD (Alzheimer's Disease)**
-    - **Control (Sano)**
+    - **Control (Healthy)**
     - **PD (Parkinson's Disease)**
     """)
     
     st.markdown("---")
     
     st.markdown("""
-    **Instrucciones de Uso:**
-    1.Sube una neuroimagen
-    2.Haz clic en "Analizar Imagen"
-    3.Revisa los resultados del diagnóstico
+    **Usage Instructions:**
+    1. Upload a neuroimaging
+    2. Click "Analyze Image"
+    3. Review the diagnosis results
     
-    **Formatos Soportados:**
+    **Supported Formats:**
     - JPG, JPEG, PNG
     """)
     
-    if modelo:
-        st.success("Modelo cargado correctamente")
+    if model:
+        st.success("Model loaded successfully")
     else:
-        st.error("Error al cargar el modelo")
+        st.error("Error loading model")
